@@ -1,0 +1,12 @@
+# ไฟล์ที่สร้างโดยระบบปฏิบัติการ
+.DS_Store
+Thumbs.db
+
+# ไฟล์ที่สร้างโดย IDE และ Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
