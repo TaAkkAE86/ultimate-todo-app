@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List: Ultimate Edition ⏳</title>
+
+    <meta name="description" content="สุดยอดเว็บแอป To-Do List ที่มี Focus Mode ในตัว!">
+    <meta property="og:title" content="To-Do List: Ultimate Edition ⏳">
+    <meta property="og:description" content="จัดการงานอย่างมือโปรด้วยฟีเจอร์ที่ไม่เคยมีมาก่อน!">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=My+Ultimate+To-Do+App">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables and Basic Styles (same as before) */
+        :root {
+            --light-primary: #6d28d9; --light-secondary: #8b5cf6; --light-background: #f4f7f5; --light-card: #ffffff; --light-text: #1f2937; --light-text-secondary: #6b7280; --light-border: #e5e7eb; --light-success: #10b981;
+            --dark-primary: #a78bfa; --dark-secondary: #c4b5fd; --dark-background: #111827; --dark-card: #1f2937; --dark-text: #f9fafb; --dark-text-secondary: #9ca3af; --dark-border: #374151; --dark-success: #34d399;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="light"] { --primary-color: var(--light-primary); --secondary-color: var(--light-secondary); --background-color: var(--light-background); --card-background: var(--light-card); --text-color: var(--light-text); --text-secondary-color: var(--light-text-secondary); --border-color: var(--light-border); --success-color: var(--light-success); }
+        [data-theme="dark"] { --primary-color: var(--dark-primary); --secondary-color: var(--dark-secondary); --background-color: var(--dark-background); --card-background: var(--dark-card); --text-color: var(--dark-text); --text-secondary-color: var(--dark-text-secondary); --border-color: var(--dark-border); --success-color: var(--dark-success); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--background-color); color: var(--text-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 20px; transition: background-color 0.3s, color 0.3s; }
+        body.in-focus-mode .container { filter: blur(5px); transform: scale(0.98); pointer-events: none; }
+        .container { background: var(--card-background); padding: 30px; border-radius: 20px; box-shadow: var(--shadow); width: 100%; max-width: 650px; transition: all 0.4s ease; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        header h1 { font-weight: 600; color: var(--primary-color); }
+        .theme-switch-wrapper { display: flex; align-items: center; } .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; } .theme-switch input { display:none; } .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; } .slider:before { background-color: white; bottom: 3px; content: ""; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; border-radius: 50%; } input:checked + .slider { background-color: var(--primary-color); } input:checked + .slider:before { transform: translateX(26px); }
+        .input-area { display: flex; margin-bottom: 20px; }
+        #task-input { flex-grow: 1; min-width: 0; padding: 12px 15px; border: 1px solid var(--border-color); background: var(--background-color); color: var(--text-color); border-radius: 10px 0 0 10px; font-size: 16px; transition: all 0.3s; }
+        #task-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); }
+        #add-task-btn { padding: 12px 20px; border: none; background: var(--primary-color); color: white; border-radius: 0 10px 10px 0; cursor: pointer; font-size: 16px; font-weight: 500; transition: background-color 0.3s; white-space: nowrap; }
+        #add-task-btn:hover { background-color: var(--secondary-color); }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+        .filters button { background: none; border: none; color: var(--text-secondary-color); cursor: pointer; font-size: 14px; margin: 0 8px; padding: 5px; transition: color 0.3s; }
+        .filters button.active { color: var(--primary-color); font-weight: 600; }
+        #clear-completed-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px; visibility: hidden; opacity: 0; transition: opacity 0.3s; }
+        #clear-completed-btn.visible { visibility: visible; opacity: 1; }
+        #task-list { list-style-type: none; }
+        .task-item { display: flex; align-items: center; gap: 10px; padding: 15px; border-bottom: 1px solid var(--border-color); transition: background-color 0.2s; user-select: none; }
+        .task-item:last-child { border-bottom: none; }
+        .task-item.dragging { opacity: 0.5; background: color-mix(in srgb, var(--primary-color) 10%, transparent); }
+        .task-item.done .task-text { text-decoration: line-through; color: var(--text-secondary-color); }
+        .task-content { flex-grow: 1; min-width: 0; cursor: pointer;}
+        .task-text { font-size: 16px; word-break: break-word; }
+        .task-details { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+        .task-timestamp { font-size: 12px; color: var(--text-secondary-color); }
+        /* NEW: Day Counter Style */
+        .task-day-counter { font-size: 12px; color: var(--secondary-color); font-weight: 500; }
+        .priority-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+        .priority-tag.high { background-color: #fee2e2; color: #dc2626; }
+        [data-theme="dark"] .priority-tag.high { background-color: #7f1d1d; color: #fecaca; }
+        .drag-handle { cursor: grab; color: var(--text-secondary-color); padding-right: 5px; }
+        .focus-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-secondary-color); transition: color 0.3s; }
+        .focus-btn:hover { color: var(--primary-color); }
+        #focus-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        #focus-overlay.visible { opacity: 1; visibility: visible; }
+        #focus-label { font-size: 18px; color: var(--dark-text-secondary); margin-bottom: 10px; }
+        #focus-task-name { font-size: 2.5rem; font-weight: 600; text-align: center; margin-bottom: 30px; max-width: 80%; }
+        #focus-timer { font-size: 6rem; font-weight: 600; margin-bottom: 40px; letter-spacing: 2px; }
+        #stop-focus-btn { padding: 12px 30px; border: 2px solid white; background: transparent; color: white; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.3s; }
+        #stop-focus-btn:hover { background: white; color: black; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>To-Do: Ultimate ⏳</h1>
+            <div class="theme-switch-wrapper"> <label class="theme-switch" for="theme-toggle"> <input type="checkbox" id="theme-toggle" /> <div class="slider round"></div> </label> </div>
+        </header>
+        <div class="input-area"> <input type="text" id="task-input" placeholder="พิมพ์งานของคุณที่นี่..."> <button id="add-task-btn">เพิ่ม</button> </div>
+        <div class="controls"> <div class="filters"> <button class="active" data-filter="all">ทั้งหมด</button> <button data-filter="active">ที่ต้องทำ</button> <button data-filter="completed">ที่เสร็จแล้ว</button> </div> <button id="clear-completed-btn">ล้างรายการที่เสร็จแล้ว</button> </div>
+        <ul id="task-list"></ul>
+    </div>
+
+    <div id="focus-overlay">
+        <div id="focus-label">กำลังโฟกัสกับ...</div>
+        <h2 id="focus-task-name">ชื่องาน</h2>
+        <div id="focus-timer">25:00</div>
+        <button id="stop-focus-btn">หยุดโฟกัส</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // All existing variable declarations are the same
+            const taskInput = document.getElementById('task-input');
+            const addTaskBtn = document.getElementById('add-task-btn');
+            const taskList = document.getElementById('task-list');
+            const filterBtns = document.querySelectorAll('.filters button');
+            const clearCompletedBtn = document.getElementById('clear-completed-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+            const focusOverlay = document.getElementById('focus-overlay');
+            const focusTaskName = document.getElementById('focus-task-name');
+            const focusTimerDisplay = document.getElementById('focus-timer');
+            const stopFocusBtn = document.getElementById('stop-focus-btn');
+            let timerInterval = null;
+            let focusedTaskId = null;
+            const completionSound = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+
+            let tasks = JSON.parse(localStorage.getItem('proTodoList')) || [];
+            let currentFilter = 'all';
+            let draggedTaskId = null;
+
+            const saveTasks = () => localStorage.setItem('proTodoList', JSON.stringify(tasks));
+            
+            const getPriority = (text) => {
+                const lowerText = text.toLowerCase();
+                const highPriorityKeywords = ['ด่วนที่สุด', 'ด่วนมาก', 'ด่วน', 'urgent', 'asap', 'ต้องเสร็จ', 'สำคัญมาก', 'วันนี้', 'พรุ่งนี้'];
+                if (highPriorityKeywords.some(keyword => lowerText.includes(keyword))) return 'high';
+                return 'normal';
+            };
+
+            // --- NEW: Day Counter Function ---
+            const daysSince = (timestamp) => {
+                const now = new Date();
+                const taskDate = new Date(timestamp);
+                // Reset time to start of the day for accurate day difference
+                now.setHours(0, 0, 0, 0);
+                taskDate.setHours(0, 0, 0, 0);
+                
+                const diffTime = now - taskDate;
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 0) return '(วันนี้)';
+                if (diffDays === 1) return '(1 วันที่แล้ว)';
+                return `(${diffDays} วันที่แล้ว)`;
+            };
+
+            const renderTasks = () => {
+                taskList.innerHTML = '';
+                const filteredTasks = tasks.filter(task => { if (currentFilter === 'active') return !task.done; if (currentFilter === 'completed') return task.done; return true; });
+                if (filteredTasks.length === 0) {
+                     taskList.innerHTML = `<li style="text-align: center; color: var(--text-secondary-color); padding: 20px;">ไม่มีรายการ</li>`;
+                } else {
+                    filteredTasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.className = 'task-item'; li.draggable = true; li.dataset.id = task.id; if (task.done) li.classList.add('done');
+                        const handle = document.createElement('span'); handle.className = 'drag-handle'; handle.innerHTML = '&#x2630;';
+                        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = task.done; checkbox.addEventListener('change', () => toggleTask(task.id));
+                        const contentDiv = document.createElement('div'); contentDiv.className = 'task-content'; contentDiv.addEventListener('click', () => toggleTask(task.id));
+                        const textSpan = document.createElement('span'); textSpan.className = 'task-text'; textSpan.textContent = task.text;
+                        const detailsDiv = document.createElement('div'); detailsDiv.className = 'task-details';
+                        
+                        // Timestamp
+                        const timeStampDiv = document.createElement('div');
+                        timeStampDiv.className = 'task-timestamp';
+                        timeStampDiv.textContent = task.timestamp;
+                        detailsDiv.appendChild(timeStampDiv);
+
+                        // Day Counter (NEW)
+                        const dayCounterSpan = document.createElement('span');
+                        dayCounterSpan.className = 'task-day-counter';
+                        dayCounterSpan.textContent = daysSince(task.id);
+                        detailsDiv.appendChild(dayCounterSpan);
+
+                        // Priority Tag
+                        if (task.priority === 'high') {
+                            const priorityTag = document.createElement('span'); priorityTag.className = 'priority-tag high'; priorityTag.textContent = '💥 สำคัญมาก';
+                            detailsDiv.appendChild(priorityTag);
+                        }
+                        
+                        contentDiv.appendChild(textSpan); contentDiv.appendChild(detailsDiv);
+                        const focusBtn = document.createElement('button'); focusBtn.className = 'focus-btn'; focusBtn.innerHTML = '▶️'; focusBtn.title = 'เริ่มโฟกัสกับงานนี้';
+                        focusBtn.addEventListener('click', (e) => { e.stopPropagation(); startFocusMode(task.id); });
+                        li.appendChild(handle); li.appendChild(checkbox); li.appendChild(contentDiv); li.appendChild(focusBtn);
+                        taskList.appendChild(li);
+                    });
+                }
+                updateClearButton();
+                addDragEvents();
+            };
+            
+            // --- All other functions (startFocusMode, stopFocusMode, addTask, toggleTask, drag/drop, theme, etc.) are unchanged ---
+            const startFocusMode = (id) => { const task = tasks.find(t => t.id === id); if (!task || task.done) { alert('ไม่สามารถโฟกัสงานที่เสร็จแล้วได้'); return; } focusedTaskId = id; document.body.classList.add('in-focus-mode'); focusOverlay.classList.add('visible'); focusTaskName.textContent = task.text; let duration = 25 * 60; clearInterval(timerInterval); timerInterval = setInterval(() => { const minutes = Math.floor(duration / 60).toString().padStart(2, '0'); const seconds = (duration % 60).toString().padStart(2, '0'); focusTimerDisplay.textContent = `${minutes}:${seconds}`; document.title = `${minutes}:${seconds} - ${task.text}`; if (--duration < 0) { clearInterval(timerInterval); completionSound.play(); document.title = "To-Do: Ultimate ⏳"; if (confirm(`ครบ 25 นาทีแล้ว! ต้องการมาร์กงาน "${task.text}" ว่าเสร็จสิ้นหรือไม่?`)) { toggleTask(focusedTaskId); } stopFocusMode(); } }, 1000); };
+            const stopFocusMode = () => { clearInterval(timerInterval); document.body.classList.remove('in-focus-mode'); focusOverlay.classList.remove('visible'); document.title = "To-Do: Ultimate ⏳"; focusedTaskId = null; };
+            const updateClearButton = () => { const hasCompleted = tasks.some(task => task.done); clearCompletedBtn.classList.toggle('visible', hasCompleted); };
+            const addTask = () => { const taskText = taskInput.value.trim(); if (taskText === '') return; const now = new Date(); tasks.unshift({ id: now.getTime(), text: taskText, done: false, priority: getPriority(taskText), timestamp: now.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) }); saveTasks(); renderTasks(); taskInput.value = ''; taskInput.focus(); };
+            const toggleTask = (id) => { const task = tasks.find(t => t.id === id); if (task) { task.done = !task.done; saveTasks(); renderTasks(); } };
+            function addDragEvents() { const items = taskList.querySelectorAll('.task-item'); items.forEach(item => { item.addEventListener('dragstart', () => { draggedTaskId = parseInt(item.dataset.id); setTimeout(() => item.classList.add('dragging'), 0); }); item.addEventListener('dragend', () => item.classList.remove('dragging')); item.addEventListener('dragover', e => { e.preventDefault(); const afterElement = getDragAfterElement(taskList, e.clientY); const dragging = document.querySelector('.dragging'); if (afterElement == null) { taskList.appendChild(dragging); } else { taskList.insertBefore(dragging, afterElement); } }); item.addEventListener('drop', () => { const draggedIndex = tasks.findIndex(t => t.id === draggedTaskId); const allItems = [...taskList.querySelectorAll('.task-item')]; const newIndex = allItems.findIndex(i => parseInt(i.dataset.id) === draggedTaskId); const draggedTask = tasks.splice(draggedIndex, 1)[0]; tasks.splice(newIndex, 0, draggedTask); saveTasks(); }); }); }
+            function getDragAfterElement(container, y) { const draggableElements = [...container.querySelectorAll('.task-item:not(.dragging)')]; return draggableElements.reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2; if (offset < 0 && offset > closest.offset) { return { offset: offset, element: child }; } else { return closest; } }, { offset: Number.NEGATIVE_INFINITY }).element; }
+            const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('proTodoTheme', theme); themeToggle.checked = theme === 'dark'; };
+            themeToggle.addEventListener('change', () => { applyTheme(themeToggle.checked ? 'dark' : 'light'); });
+            addTaskBtn.addEventListener('click', addTask); taskInput.addEventListener('keypress', e => e.key === 'Enter' && addTask());
+            filterBtns.forEach(button => { button.addEventListener('click', () => { filterBtns.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); currentFilter = button.dataset.filter; renderTasks(); }); });
+            clearCompletedBtn.addEventListener('click', () => { tasks = tasks.filter(task => !task.done); saveTasks(); renderTasks(); });
+            stopFocusBtn.addEventListener('click', stopFocusMode);
+            const savedTheme = localStorage.getItem('proTodoTheme') || 'light'; applyTheme(savedTheme); renderTasks();
+        });
+    </script>
+</body>
+</html>
