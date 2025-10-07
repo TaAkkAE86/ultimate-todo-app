@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List: Ultimate Edition ⏳</title>
-
-    <meta name="description" content="สุดยอดเว็บแอป To-Do List ที่มี Focus Mode ในตัว!">
-    <meta property="og:title" content="To-Do List: Ultimate Edition ⏳">
+    <title>To-Do List: Notification Edition 🔔</title>
+    
+    <meta name="description" content="สุดยอดเว็บแอป To-Do List ที่มี Focus Mode และการแจ้งเตือนงานค้างในตัว!">
+    <meta property="og:title" content="To-Do List: Notification Edition 🔔">
     <meta property="og:description" content="จัดการงานอย่างมือโปรด้วยฟีเจอร์ที่ไม่เคยมีมาก่อน!">
     <meta property="og:image" content="https://via.placeholder.com/1200x630.png?text=My+Ultimate+To-Do+App">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
-    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS Variables and Basic Styles (same as before) */
+        /* CSS ทั้งหมดเหมือนเดิม ยกเว้นส่วนที่เพิ่มเข้ามา */
         :root {
             --light-primary: #6d28d9; --light-secondary: #8b5cf6; --light-background: #f4f7f5; --light-card: #ffffff; --light-text: #1f2937; --light-text-secondary: #6b7280; --light-border: #e5e7eb; --light-success: #10b981;
             --dark-primary: #a78bfa; --dark-secondary: #c4b5fd; --dark-background: #111827; --dark-card: #1f2937; --dark-text: #f9fafb; --dark-text-secondary: #9ca3af; --dark-border: #374151; --dark-success: #34d399;
@@ -50,7 +50,6 @@
         .task-text { font-size: 16px; word-break: break-word; }
         .task-details { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
         .task-timestamp { font-size: 12px; color: var(--text-secondary-color); }
-        /* NEW: Day Counter Style */
         .task-day-counter { font-size: 12px; color: var(--secondary-color); font-weight: 500; }
         .priority-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
         .priority-tag.high { background-color: #fee2e2; color: #dc2626; }
@@ -65,15 +64,42 @@
         #focus-timer { font-size: 6rem; font-weight: 600; margin-bottom: 40px; letter-spacing: 2px; }
         #stop-focus-btn { padding: 12px 30px; border: 2px solid white; background: transparent; color: white; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.3s; }
         #stop-focus-btn:hover { background: white; color: black; }
+        
+        /* --- NEW: Notification Banner Styles --- */
+        #notification-banner {
+            background-color: var(--card-background);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            display: none; /* Hidden by default */
+            justify-content: space-between;
+            align-items: center;
+        }
+        #notification-banner p { margin: 0; color: var(--text-secondary-color); }
+        #enable-notifications-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <header>
-            <h1>To-Do: Ultimate ⏳</h1>
+            <h1>To-Do: Notify 🔔</h1>
             <div class="theme-switch-wrapper"> <label class="theme-switch" for="theme-toggle"> <input type="checkbox" id="theme-toggle" /> <div class="slider round"></div> </label> </div>
         </header>
+        
+        <div id="notification-banner">
+            <p>เปิดการแจ้งเตือนเพื่อรับการแจ้งเตือนเกี่ยวกับงานที่ค้างอยู่</p>
+            <button id="enable-notifications-btn">เปิดใช้งาน</button>
+        </div>
+
         <div class="input-area"> <input type="text" id="task-input" placeholder="พิมพ์งานของคุณที่นี่..."> <button id="add-task-btn">เพิ่ม</button> </div>
         <div class="controls"> <div class="filters"> <button class="active" data-filter="all">ทั้งหมด</button> <button data-filter="active">ที่ต้องทำ</button> <button data-filter="completed">ที่เสร็จแล้ว</button> </div> <button id="clear-completed-btn">ล้างรายการที่เสร็จแล้ว</button> </div>
         <ul id="task-list"></ul>
@@ -103,34 +129,17 @@
             let focusedTaskId = null;
             const completionSound = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
 
+            // NEW: Notification variables
+            const notificationBanner = document.getElementById('notification-banner');
+            const enableNotificationsBtn = document.getElementById('enable-notifications-btn');
+
             let tasks = JSON.parse(localStorage.getItem('proTodoList')) || [];
             let currentFilter = 'all';
             let draggedTaskId = null;
 
             const saveTasks = () => localStorage.setItem('proTodoList', JSON.stringify(tasks));
-            
-            const getPriority = (text) => {
-                const lowerText = text.toLowerCase();
-                const highPriorityKeywords = ['ด่วนที่สุด', 'ด่วนมาก', 'ด่วน', 'urgent', 'asap', 'ต้องเสร็จ', 'สำคัญมาก', 'วันนี้', 'พรุ่งนี้'];
-                if (highPriorityKeywords.some(keyword => lowerText.includes(keyword))) return 'high';
-                return 'normal';
-            };
-
-            // --- NEW: Day Counter Function ---
-            const daysSince = (timestamp) => {
-                const now = new Date();
-                const taskDate = new Date(timestamp);
-                // Reset time to start of the day for accurate day difference
-                now.setHours(0, 0, 0, 0);
-                taskDate.setHours(0, 0, 0, 0);
-                
-                const diffTime = now - taskDate;
-                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays === 0) return '(วันนี้)';
-                if (diffDays === 1) return '(1 วันที่แล้ว)';
-                return `(${diffDays} วันที่แล้ว)`;
-            };
+            const getPriority = (text) => { const lowerText = text.toLowerCase(); const highPriorityKeywords = ['ด่วนที่สุด', 'ด่วนมาก', 'ด่วน', 'urgent', 'asap', 'ต้องเสร็จ', 'สำคัญมาก', 'วันนี้', 'พรุ่งนี้']; if (highPriorityKeywords.some(keyword => lowerText.includes(keyword))) return 'high'; return 'normal'; };
+            const daysSince = (timestamp) => { const now = new Date(); const taskDate = new Date(timestamp); now.setHours(0, 0, 0, 0); taskDate.setHours(0, 0, 0, 0); const diffTime = now - taskDate; const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)); if (diffDays === 0) return '(วันนี้)'; if (diffDays === 1) return '(1 วันที่แล้ว)'; return `(${diffDays} วันที่แล้ว)`; };
 
             const renderTasks = () => {
                 taskList.innerHTML = '';
@@ -139,44 +148,63 @@
                      taskList.innerHTML = `<li style="text-align: center; color: var(--text-secondary-color); padding: 20px;">ไม่มีรายการ</li>`;
                 } else {
                     filteredTasks.forEach(task => {
-                        const li = document.createElement('li');
-                        li.className = 'task-item'; li.draggable = true; li.dataset.id = task.id; if (task.done) li.classList.add('done');
+                        const li = document.createElement('li'); li.className = 'task-item'; li.draggable = true; li.dataset.id = task.id; if (task.done) li.classList.add('done');
                         const handle = document.createElement('span'); handle.className = 'drag-handle'; handle.innerHTML = '&#x2630;';
                         const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = task.done; checkbox.addEventListener('change', () => toggleTask(task.id));
                         const contentDiv = document.createElement('div'); contentDiv.className = 'task-content'; contentDiv.addEventListener('click', () => toggleTask(task.id));
                         const textSpan = document.createElement('span'); textSpan.className = 'task-text'; textSpan.textContent = task.text;
                         const detailsDiv = document.createElement('div'); detailsDiv.className = 'task-details';
-                        
-                        // Timestamp
-                        const timeStampDiv = document.createElement('div');
-                        timeStampDiv.className = 'task-timestamp';
-                        timeStampDiv.textContent = task.timestamp;
-                        detailsDiv.appendChild(timeStampDiv);
-
-                        // Day Counter (NEW)
-                        const dayCounterSpan = document.createElement('span');
-                        dayCounterSpan.className = 'task-day-counter';
-                        dayCounterSpan.textContent = daysSince(task.id);
-                        detailsDiv.appendChild(dayCounterSpan);
-
-                        // Priority Tag
-                        if (task.priority === 'high') {
-                            const priorityTag = document.createElement('span'); priorityTag.className = 'priority-tag high'; priorityTag.textContent = '💥 สำคัญมาก';
-                            detailsDiv.appendChild(priorityTag);
-                        }
-                        
+                        const timeStampDiv = document.createElement('div'); timeStampDiv.className = 'task-timestamp'; timeStampDiv.textContent = task.timestamp; detailsDiv.appendChild(timeStampDiv);
+                        const dayCounterSpan = document.createElement('span'); dayCounterSpan.className = 'task-day-counter'; dayCounterSpan.textContent = daysSince(task.id); detailsDiv.appendChild(dayCounterSpan);
+                        if (task.priority === 'high') { const priorityTag = document.createElement('span'); priorityTag.className = 'priority-tag high'; priorityTag.textContent = '💥 สำคัญมาก'; detailsDiv.appendChild(priorityTag); }
                         contentDiv.appendChild(textSpan); contentDiv.appendChild(detailsDiv);
-                        const focusBtn = document.createElement('button'); focusBtn.className = 'focus-btn'; focusBtn.innerHTML = '▶️'; focusBtn.title = 'เริ่มโฟกัสกับงานนี้';
-                        focusBtn.addEventListener('click', (e) => { e.stopPropagation(); startFocusMode(task.id); });
+                        const focusBtn = document.createElement('button'); focusBtn.className = 'focus-btn'; focusBtn.innerHTML = '▶️'; focusBtn.title = 'เริ่มโฟกัสกับงานนี้'; focusBtn.addEventListener('click', (e) => { e.stopPropagation(); startFocusMode(task.id); });
                         li.appendChild(handle); li.appendChild(checkbox); li.appendChild(contentDiv); li.appendChild(focusBtn);
                         taskList.appendChild(li);
                     });
                 }
-                updateClearButton();
-                addDragEvents();
+                updateClearButton(); addDragEvents();
             };
             
-            // --- All other functions (startFocusMode, stopFocusMode, addTask, toggleTask, drag/drop, theme, etc.) are unchanged ---
+            // --- NEW: Notification Functions ---
+            const setupNotifications = () => {
+                if (!("Notification" in window)) {
+                    console.log("This browser does not support desktop notification");
+                } else if (Notification.permission === "granted") {
+                    // We can send notifications
+                    setInterval(checkTasksForNotifications, 1000 * 60 * 60); // Check every hour
+                } else if (Notification.permission !== "denied") {
+                    notificationBanner.style.display = 'flex';
+                }
+            };
+
+            const requestNotificationPermission = () => {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        notificationBanner.style.display = 'none';
+                        new Notification("เปิดใช้งานการแจ้งเตือนแล้ว!", {
+                            body: "เราจะแจ้งเตือนคุณเมื่องานค้าง",
+                            icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👍</text></svg>"
+                        });
+                        setInterval(checkTasksForNotifications, 1000 * 60 * 60); // Check every hour
+                    }
+                });
+            };
+
+            const checkTasksForNotifications = () => {
+                const pendingTasks = tasks.filter(task => !task.done);
+                if (pendingTasks.length > 0) {
+                    const taskListString = pendingTasks.slice(0, 3).map(t => `- ${t.text}`).join('\n');
+                    const body = pendingTasks.length > 3 ? `${taskListString}\nและอีก ${pendingTasks.length - 3} รายการ...` : taskListString;
+                    
+                    new Notification(`คุณมี ${pendingTasks.length} งานที่ยังไม่เสร็จ`, {
+                        body: body,
+                        icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>"
+                    });
+                }
+            };
+            
+            // --- All other functions (startFocusMode, etc.) are unchanged ---
             const startFocusMode = (id) => { const task = tasks.find(t => t.id === id); if (!task || task.done) { alert('ไม่สามารถโฟกัสงานที่เสร็จแล้วได้'); return; } focusedTaskId = id; document.body.classList.add('in-focus-mode'); focusOverlay.classList.add('visible'); focusTaskName.textContent = task.text; let duration = 25 * 60; clearInterval(timerInterval); timerInterval = setInterval(() => { const minutes = Math.floor(duration / 60).toString().padStart(2, '0'); const seconds = (duration % 60).toString().padStart(2, '0'); focusTimerDisplay.textContent = `${minutes}:${seconds}`; document.title = `${minutes}:${seconds} - ${task.text}`; if (--duration < 0) { clearInterval(timerInterval); completionSound.play(); document.title = "To-Do: Ultimate ⏳"; if (confirm(`ครบ 25 นาทีแล้ว! ต้องการมาร์กงาน "${task.text}" ว่าเสร็จสิ้นหรือไม่?`)) { toggleTask(focusedTaskId); } stopFocusMode(); } }, 1000); };
             const stopFocusMode = () => { clearInterval(timerInterval); document.body.classList.remove('in-focus-mode'); focusOverlay.classList.remove('visible'); document.title = "To-Do: Ultimate ⏳"; focusedTaskId = null; };
             const updateClearButton = () => { const hasCompleted = tasks.some(task => task.done); clearCompletedBtn.classList.toggle('visible', hasCompleted); };
@@ -190,7 +218,13 @@
             filterBtns.forEach(button => { button.addEventListener('click', () => { filterBtns.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); currentFilter = button.dataset.filter; renderTasks(); }); });
             clearCompletedBtn.addEventListener('click', () => { tasks = tasks.filter(task => !task.done); saveTasks(); renderTasks(); });
             stopFocusBtn.addEventListener('click', stopFocusMode);
-            const savedTheme = localStorage.getItem('proTodoTheme') || 'light'; applyTheme(savedTheme); renderTasks();
+            enableNotificationsBtn.addEventListener('click', requestNotificationPermission); // Event for new notification button
+
+            // --- Initial Load ---
+            const savedTheme = localStorage.getItem('proTodoTheme') || 'light';
+            applyTheme(savedTheme);
+            renderTasks();
+            setupNotifications(); // Setup notifications on load
         });
     </script>
 </body>
