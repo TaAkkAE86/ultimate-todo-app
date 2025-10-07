@@ -3,55 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>To-Do List: Cloud Sync Edition ☁️</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☁️</text></svg>">
+    <title>To-Do List: The Ultimate Cloud Edition 🚀</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        /* CSS ทั้งหมดเหมือนเดิม ไม่มีอะไรเปลี่ยนแปลง */
-        :root { --light-primary: #6d28d9; /* ... */ } [data-theme="light"] { /* ... */ } [data-theme="dark"] { /* ... */ } * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Poppins', sans-serif; background: var(--background-color); color: var(--text-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 20px; transition: background-color 0.3s, color 0.3s; }
+        :root {
+            --light-primary: #6d28d9; --light-secondary: #8b5cf6; --light-background: #f4f7f5; --light-card: #ffffff; --light-text: #1f2937; --light-text-secondary: #6b7280; --light-border: #e5e7eb; --light-success: #10b981;
+            --dark-primary: #a78bfa; --dark-secondary: #c4b5fd; --dark-background: #111827; --dark-card: #1f2937; --dark-text: #f9fafb; --dark-text-secondary: #9ca3af; --dark-border: #374151; --dark-success: #34d399;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        [data-theme="light"] { --primary-color: var(--light-primary); --secondary-color: var(--light-secondary); --background-color: var(--light-background); --card-background: var(--light-card); --text-color: var(--light-text); --text-secondary-color: var(--light-text-secondary); --border-color: var(--light-border); --success-color: var(--light-success); }
+        [data-theme="dark"] { --primary-color: var(--dark-primary); --secondary-color: var(--dark-secondary); --background-color: var(--dark-background); --card-background: var(--dark-card); --text-color: var(--dark-text); --text-secondary-color: var(--dark-text-secondary); --border-color: var(--dark-border); --success-color: var(--dark-success); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--background-color); color: var(--text-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 40px 20px; transition: background-color 0.3s, color 0.3s; }
+        body.in-focus-mode .container { filter: blur(5px); transform: scale(0.98); pointer-events: none; }
         .container { background: var(--card-background); padding: 30px; border-radius: 20px; box-shadow: var(--shadow); width: 100%; max-width: 650px; transition: all 0.4s ease; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         header h1 { font-weight: 600; color: var(--primary-color); }
+        .theme-switch-wrapper { display: flex; align-items: center; } .theme-switch { display: inline-block; height: 24px; position: relative; width: 50px; } .theme-switch input { display:none; } .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; } .slider:before { background-color: white; bottom: 3px; content: ""; height: 18px; left: 4px; position: absolute; transition: .4s; width: 18px; border-radius: 50%; } input:checked + .slider { background-color: var(--primary-color); } input:checked + .slider:before { transform: translateX(26px); }
         .input-area { display: flex; margin-bottom: 20px; }
         #task-input { flex-grow: 1; min-width: 0; padding: 12px 15px; border: 1px solid var(--border-color); background: var(--background-color); color: var(--text-color); border-radius: 10px 0 0 10px; font-size: 16px; transition: all 0.3s; }
+        #task-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); }
         #add-task-btn { padding: 12px 20px; border: none; background: var(--primary-color); color: white; border-radius: 0 10px 10px 0; cursor: pointer; font-size: 16px; font-weight: 500; transition: background-color 0.3s; white-space: nowrap; }
+        #add-task-btn:hover { background-color: var(--secondary-color); }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;}
+        .filters button { background: none; border: none; color: var(--text-secondary-color); cursor: pointer; font-size: 14px; margin: 0 8px; padding: 5px; transition: color 0.3s; }
+        .filters button.active { color: var(--primary-color); font-weight: 600; }
+        #clear-completed-btn { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px; display: none; }
+        #clear-completed-btn.visible { display: inline; }
         #task-list { list-style-type: none; }
         .task-item { display: flex; align-items: center; gap: 10px; padding: 15px; border-bottom: 1px solid var(--border-color); user-select: none; }
+        .task-item:last-child { border-bottom: none; }
         .task-item.done .task-text { text-decoration: line-through; color: var(--text-secondary-color); }
-        .task-content { flex-grow: 1; min-width: 0; cursor: pointer;}
+        .task-content { flex-grow: 1; min-width: 0; }
         .task-text { font-size: 16px; word-break: break-word; }
         .task-details { display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
         .task-timestamp { font-size: 12px; color: var(--text-secondary-color); }
+        .task-day-counter { font-size: 12px; color: var(--secondary-color); font-weight: 500; }
         .priority-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background-color: #fee2e2; color: #dc2626; }
         [data-theme="dark"] .priority-tag { background-color: #7f1d1d; color: #fecaca; }
+        .task-actions { display: flex; align-items: center; }
+        .focus-btn, .delete-btn { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-secondary-color); transition: color 0.3s; padding: 0 5px; }
+        .focus-btn:hover { color: var(--primary-color); }
+        .delete-btn:hover { color: #e74c3c; }
+        #focus-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        #focus-overlay.visible { opacity: 1; visibility: visible; }
+        #focus-label { font-size: 18px; color: var(--dark-text-secondary); margin-bottom: 10px; }
+        #focus-task-name { font-size: 2.5rem; font-weight: 600; text-align: center; margin-bottom: 30px; max-width: 80%; }
+        #focus-timer { font-size: 6rem; font-weight: 600; margin-bottom: 40px; letter-spacing: 2px; }
+        #stop-focus-btn { padding: 12px 30px; border: 2px solid white; background: transparent; color: white; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 500; transition: all 0.3s; }
+        #stop-focus-btn:hover { background: white; color: black; }
+        #notification-banner { background-color: var(--card-background); padding: 15px; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--border-color); display: none; justify-content: space-between; align-items: center; }
+        #notification-banner p { margin: 0; color: var(--text-secondary-color); }
+        #enable-notifications-btn { background-color: var(--success-color); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <header> <h1>To-Do: Cloud Sync ☁️</h1> </header>
+        <header>
+            <h1>To-Do: Ultimate Cloud 🚀</h1>
+            <div class="theme-switch-wrapper"> <label class="theme-switch" for="theme-toggle"> <input type="checkbox" id="theme-toggle" /> <div class="slider round"></div> </label> </div>
+        </header>
+        
+        <div id="notification-banner">
+            <p>เปิดการแจ้งเตือนเพื่อรับการแจ้งเตือนเกี่ยวกับงานที่ค้างอยู่</p>
+            <button id="enable-notifications-btn">เปิดใช้งาน</button>
+        </div>
+
         <div class="input-area"> <input type="text" id="task-input" placeholder="พิมพ์งานของคุณที่นี่..."> <button id="add-task-btn">เพิ่ม</button> </div>
+        <div class="controls"> <div class="filters"> <button class="active" data-filter="all">ทั้งหมด</button> <button data-filter="active">ที่ต้องทำ</button> <button data-filter="completed">ที่เสร็จแล้ว</button> </div> <button id="clear-completed-btn">ล้างรายการที่เสร็จแล้ว</button> </div>
         <ul id="task-list"></ul>
+    </div>
+
+    <div id="focus-overlay">
+        <div id="focus-label">กำลังโฟกัสกับ...</div>
+        <h2 id="focus-task-name">ชื่องาน</h2>
+        <div id="focus-timer">25:00</div>
+        <button id="stop-focus-btn">หยุดโฟกัส</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // 2. วาง FIREBASE CONFIG ของคุณที่นี่!
+        // =================================================================
+        // == วาง FIREBASE CONFIG ของคุณที่นี่! ==
+        // =================================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyANkkp8y0BiJlj5YscdRP7MxrsldAn5ei0",
-  authDomain: "my-ultimate-todo.firebaseapp.com",
-  projectId: "my-ultimate-todo",
-  storageBucket: "my-ultimate-todo.firebasestorage.app",
-  messagingSenderId: "333436474367",
-  appId: "1:333436474367:web:d17d050e13ef503f5d0dca",
-  measurementId: "G-HZM1HQMWRX"
-};
+            apiKey: "AIzaSy...YOUR...KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:12345...YOUR...ID"
+        };
 
-        // 3. เริ่มต้นการเชื่อมต่อกับ Firebase
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const tasksCollection = db.collection('tasks');
@@ -60,107 +112,90 @@
             const taskInput = document.getElementById('task-input');
             const addTaskBtn = document.getElementById('add-task-btn');
             const taskList = document.getElementById('task-list');
+            const filterBtns = document.querySelectorAll('.filters button');
+            const clearCompletedBtn = document.getElementById('clear-completed-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+            const focusOverlay = document.getElementById('focus-overlay');
+            const focusTaskName = document.getElementById('focus-task-name');
+            const focusTimerDisplay = document.getElementById('focus-timer');
+            const stopFocusBtn = document.getElementById('stop-focus-btn');
+            const notificationBanner = document.getElementById('notification-banner');
+            const enableNotificationsBtn = document.getElementById('enable-notifications-btn');
+            
+            let timerInterval = null;
+            let currentFilter = 'all';
+            let allTasks = []; // Local cache for filtering
+            
+            // --- Helper Functions ---
+            const getPriority = (text) => { const lowerText = text.toLowerCase(); const keywords = ['ด่วนที่สุด', 'ด่วนมาก', 'ด่วน', 'urgent', 'asap', 'ต้องเสร็จ', 'สำคัญมาก', 'วันนี้', 'พรุ่งนี้']; return keywords.some(k => lowerText.includes(k)); };
+            const daysSince = (timestamp) => { const now = new Date(); const taskDate = new Date(timestamp); now.setHours(0,0,0,0); taskDate.setHours(0,0,0,0); const diffDays = Math.round((now - taskDate) / 864e5); if (diffDays === 0) return '(วันนี้)'; if (diffDays === 1) return '(1 วันที่แล้ว)'; return `(${diffDays} วันที่แล้ว)`; };
 
-            const getPriority = (text) => {
-                const lowerText = text.toLowerCase();
-                const highPriorityKeywords = ['ด่วนที่สุด', 'ด่วนมาก', 'ด่วน', 'urgent', 'asap', 'ต้องเสร็จ', 'สำคัญมาก', 'วันนี้', 'พรุ่งนี้'];
-                return highPriorityKeywords.some(keyword => lowerText.includes(keyword));
+            const renderTasks = () => {
+                const filteredTasks = allTasks.filter(task => { if (currentFilter === 'active') return !task.done; if (currentFilter === 'completed') return task.done; return true; });
+                taskList.innerHTML = '';
+                if (filteredTasks.length === 0) { taskList.innerHTML = `<li style="text-align: center; color: var(--text-secondary-color); padding: 20px;">ไม่มีรายการ</li>`; }
+                else { filteredTasks.forEach(renderTaskItem); }
+                const hasCompleted = allTasks.some(task => task.done);
+                clearCompletedBtn.classList.toggle('visible', hasCompleted);
             };
 
-            // ฟังก์ชันวาดรายการ (เหมือนเดิม แต่ใช้ข้อมูลจาก DB)
-            const renderTask = (doc) => {
-                const task = doc.data();
-                const li = document.createElement('li');
-                li.className = 'task-item';
-                li.dataset.id = doc.id; // ใช้ ID จาก Firestore
-                if (task.done) li.classList.add('done');
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = task.done;
-                checkbox.addEventListener('change', () => toggleTask(doc.id, task.done));
-
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'task-content';
-                contentDiv.addEventListener('click', () => toggleTask(doc.id, task.done));
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = 'task-text';
-                textSpan.textContent = task.text;
-
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = 'task-details';
-                const timeStampDiv = document.createElement('div');
-                timeStampDiv.className = 'task-timestamp';
-                timeStampDiv.textContent = new Date(task.createdAt).toLocaleString('th-TH');
-                detailsDiv.appendChild(timeStampDiv);
-
-                if (task.isHighPriority) {
-                    const priorityTag = document.createElement('span');
-                    priorityTag.className = 'priority-tag';
-                    priorityTag.textContent = '💥 สำคัญมาก';
-                    detailsDiv.appendChild(priorityTag);
-                }
-
-                contentDiv.appendChild(textSpan);
-                contentDiv.appendChild(detailsDiv);
-
-                // ปุ่มลบ
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'ลบ';
-                deleteBtn.style.marginLeft = 'auto'; // Move to the right
-                deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deleteTask(doc.id);
-                });
-
-                li.appendChild(checkbox);
-                li.appendChild(contentDiv);
-                li.appendChild(deleteBtn);
+            const renderTaskItem = (task) => {
+                const li = document.createElement('li'); li.className = 'task-item'; li.dataset.id = task.id; if (task.done) li.classList.add('done');
+                const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = task.done; checkbox.addEventListener('change', () => toggleTask(task.id, task.done));
+                const contentDiv = document.createElement('div'); contentDiv.className = 'task-content';
+                const textSpan = document.createElement('span'); textSpan.className = 'task-text'; textSpan.textContent = task.text;
+                const detailsDiv = document.createElement('div'); detailsDiv.className = 'task-details';
+                const timeStampDiv = document.createElement('div'); timeStampDiv.className = 'task-timestamp'; timeStampDiv.textContent = new Date(task.createdAt).toLocaleString('th-TH');
+                const dayCounterSpan = document.createElement('span'); dayCounterSpan.className = 'task-day-counter'; dayCounterSpan.textContent = daysSince(task.createdAt);
+                detailsDiv.appendChild(timeStampDiv); detailsDiv.appendChild(dayCounterSpan);
+                if (task.isHighPriority) { const tag = document.createElement('span'); tag.className = 'priority-tag'; tag.textContent = '💥 สำคัญมาก'; detailsDiv.appendChild(tag); }
+                contentDiv.appendChild(textSpan); contentDiv.appendChild(detailsDiv);
+                const actionsDiv = document.createElement('div'); actionsDiv.className = 'task-actions';
+                const focusBtn = document.createElement('button'); focusBtn.className = 'focus-btn'; focusBtn.innerHTML = '▶️'; focusBtn.title = 'เริ่มโฟกัส'; focusBtn.addEventListener('click', (e) => { e.stopPropagation(); startFocusMode(task); });
+                const deleteBtn = document.createElement('button'); deleteBtn.className = 'delete-btn'; deleteBtn.innerHTML = '🗑️'; deleteBtn.title = 'ลบ'; deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteTask(task.id); });
+                actionsDiv.appendChild(focusBtn); actionsDiv.appendChild(deleteBtn);
+                li.appendChild(checkbox); li.appendChild(contentDiv); li.appendChild(actionsDiv);
                 taskList.appendChild(li);
             };
 
-            // --- ฟังก์ชันที่คุยกับ Firestore ---
-
-            // เพิ่มงานใหม่
+            // --- Firestore Functions ---
             const addTask = () => {
-                const taskText = taskInput.value.trim();
-                if (taskText === '') return;
-
-                tasksCollection.add({
-                    text: taskText,
-                    done: false,
-                    isHighPriority: getPriority(taskText),
-                    createdAt: Date.now()
-                });
-
-                taskInput.value = '';
-                taskInput.focus();
+                const taskText = taskInput.value.trim(); if (taskText === '') return;
+                tasksCollection.add({ text: taskText, done: false, isHighPriority: getPriority(taskText), createdAt: Date.now() });
+                taskInput.value = ''; taskInput.focus();
             };
+            const toggleTask = (id, currentStatus) => tasksCollection.doc(id).update({ done: !currentStatus });
+            const deleteTask = (id) => { if(confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) { tasksCollection.doc(id).delete(); } };
 
-            // สลับสถานะงาน
-            const toggleTask = (id, currentStatus) => {
-                tasksCollection.doc(id).update({ done: !currentStatus });
-            };
-
-            // ลบงาน
-            const deleteTask = (id) => {
-                if(confirm('ต้องการลบรายการนี้ใช่หรือไม่?')) {
-                    tasksCollection.doc(id).delete();
-                }
-            };
+            // --- Real-time Listener ---
+            tasksCollection.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                allTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderTasks();
+            });
             
-            // --- การทำงานหลัก ---
+            // --- Event Listeners ---
             addTaskBtn.addEventListener('click', addTask);
             taskInput.addEventListener('keypress', e => e.key === 'Enter' && addTask());
+            filterBtns.forEach(button => { button.addEventListener('click', () => { filterBtns.forEach(btn => btn.classList.remove('active')); button.classList.add('active'); currentFilter = button.dataset.filter; renderTasks(); }); });
+            clearCompletedBtn.addEventListener('click', () => { allTasks.forEach(task => { if(task.done) deleteTask(task.id); }); });
 
-            // Real-time listener: ฟังการเปลี่ยนแปลงจาก DB ตลอดเวลา!
-            tasksCollection.orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-                taskList.innerHTML = ''; // ล้างรายการเก่าทุกครั้งที่ข้อมูลเปลี่ยน
-                snapshot.forEach(doc => {
-                    renderTask(doc);
-                });
-            });
+            // --- Focus Mode ---
+            let focusedTask = null;
+            const startFocusMode = (task) => { if(task.done) return; focusedTask = task; document.body.classList.add('in-focus-mode'); focusOverlay.classList.add('visible'); focusTaskName.textContent = task.text; let duration = 25 * 60; clearInterval(timerInterval); timerInterval = setInterval(() => { const minutes = Math.floor(duration / 60).toString().padStart(2, '0'); const seconds = (duration % 60).toString().padStart(2, '0'); focusTimerDisplay.textContent = `${minutes}:${seconds}`; document.title = `${minutes}:${seconds} - ${task.text}`; if (--duration < 0) { clearInterval(timerInterval); document.title = "To-Do List"; if (confirm(`ครบ 25 นาที! ต้องการมาร์กงาน "${task.text}" ว่าเสร็จสิ้นหรือไม่?`)) toggleTask(focusedTask.id, false); stopFocusMode(); } }, 1000); };
+            const stopFocusMode = () => { clearInterval(timerInterval); document.body.classList.remove('in-focus-mode'); focusOverlay.classList.remove('visible'); document.title = "To-Do List"; focusedTask = null; };
+            stopFocusBtn.addEventListener('click', stopFocusMode);
+
+            // --- Theme ---
+            const applyTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('proTodoTheme', theme); themeToggle.checked = theme === 'dark'; };
+            themeToggle.addEventListener('change', () => applyTheme(themeToggle.checked ? 'dark' : 'light'));
+            const savedTheme = localStorage.getItem('proTodoTheme') || 'light';
+            applyTheme(savedTheme);
+
+            // --- Notifications ---
+            const setupNotifications = () => { if (!("Notification" in window)) return; if (Notification.permission === "granted") { setInterval(checkNotifications, 3600000); } else if (Notification.permission !== "denied") { notificationBanner.style.display = 'flex'; } };
+            const checkNotifications = () => { const pending = allTasks.filter(t => !t.done); if(pending.length > 0) { const body = `คุณมี ${pending.length} งานที่ยังไม่เสร็จ เช่น "${pending[0].text}"`; new Notification('มีงานค้างอยู่นะ!', { body, icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>" }); } };
+            enableNotificationsBtn.addEventListener('click', () => { Notification.requestPermission().then(p => { if(p === 'granted') { notificationBanner.style.display = 'none'; setInterval(checkNotifications, 3600000); } }); });
+            setupNotifications();
         });
     </script>
 </body>
